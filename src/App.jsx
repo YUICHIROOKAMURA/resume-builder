@@ -262,12 +262,12 @@ export default function App() {
           <div style={S.card}>
             <h2 style={S.h2}>ファイル出力</h2>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-              <button style={S.btnGreen} disabled={busy !== ""} onClick={doExcel}>{busy === "excel" ? "生成中…" : "Excel出力（.xlsx / 事業所フォーマット準拠）"}</button>
-              <button style={S.btnBlue} disabled={busy !== ""} onClick={doWord}>{busy === "word" ? "生成中…" : "Word出力（.docx / 履歴書+職務経歴書）"}</button>
+              <button style={S.btnGreen} disabled={busy !== ""} onClick={doExcel}>{busy === "excel" ? "生成中…" : "Excel出力（.xlsx / 履歴書）"}</button>
+              <button style={S.btnBlue} disabled={busy !== ""} onClick={doWord}>{busy === "word" ? "生成中…" : "Word出力（.docx / 職務経歴書）"}</button>
             </div>
             <div style={{ fontSize: 13, color: "#5a6b7d", lineHeight: 1.8 }}>
-              Excel出力は事業所指定フォーマット（写真貼付欄・印刷範囲設定済み）にデータを書き込んだ.xlsxファイルです。開いてそのまま編集・印刷できます。<br />
-              Word出力は履歴書（1〜2ページ目）と職務経歴書（続くページ）を含む.docxファイルです。
+              Excel出力はJIS準拠レイアウトの履歴書（A4縦2ページ・写真貼付欄・印刷範囲設定済み）の.xlsxファイルです。開いてそのまま編集・印刷できます。<br />
+              Word出力は職務経歴書（離職期間の説明を含む）の.docxファイルです。
             </div>
           </div>
         )}
