@@ -8,13 +8,26 @@ const run = (t, opt = {}) => new TextRun({ text: t, font: FONT, size: 21, ...opt
 const para = (t, opt = {}, runOpt = {}) => new Paragraph({ children: [run(t, runOpt)], ...opt });
 
 // 職務経歴書のみ（履歴書はExcel出力を使用）
-export async function exportWord({ basic, jobs, gaps, gapTexts, dateStr }) {
+const heading = (t) => new Paragraph({
+  children: [run(`■ ${t}`, { bold: true })],
+  border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: "2F5D8A" } },
+  spacing: { before: 280, after: 80 },
+});
+
+export async function exportWord({ basic, jobs, gaps, gapTexts, dateStr, summary, skills, selfPR }) {
   const children = [
     new Paragraph({ alignment: AlignmentType.CENTER, children: [run("職 務 経 歴 書", { bold: true, size: 32 })] }),
     new Paragraph({ alignment: AlignmentType.RIGHT, children: [run(dateStr)] }),
     new Paragraph({ alignment: AlignmentType.RIGHT, children: [run(`氏名: ${basic.name}`)] }),
     para(""),
   ];
+  // 職務要約
+  if (summary) {
+    children.push(heading("職務要約"));
+    summary.split("\n").forEach((l) => children.push(para(l)));
+  }
+  // 職務経歴の見出し
+  children.push(heading("職務経歴"));
   jobs.filter((j) => j.company).forEach((j) => {
     children.push(new Paragraph({
       children: [run(`${j.company}（${j.from} 〜 ${j.to || "現在"}）`, { bold: true })],
@@ -24,6 +37,7 @@ export async function exportWord({ basic, jobs, gaps, gapTexts, dateStr }) {
     if (j.role) children.push(para(j.role, {}, { color: "555555", size: 18 }));
     (j.detail || "").split("\n").forEach((l) => children.push(para(l)));
   });
+  // 離職期間の前に、スキルと自己PR
   const gapEntries = gaps.filter((g) => gapTexts[g.key]);
   gapEntries.forEach((g) => {
     children.push(new Paragraph({
@@ -33,6 +47,15 @@ export async function exportWord({ basic, jobs, gaps, gapTexts, dateStr }) {
     }));
     gapTexts[g.key].split("\n").forEach((l) => children.push(para(l)));
   });
+
+  if (skills) {
+    children.push(heading("活かせるスキル・経験"));
+    skills.split("\n").forEach((l) => children.push(para(l)));
+  }
+  if (selfPR) {
+    children.push(heading("自己PR"));
+    selfPR.split("\n").forEach((l) => children.push(para(l)));
+  }
 
   const doc = new Document({
     sections: [{

@@ -72,6 +72,9 @@ export default function App() {
   const [jobs, setJobs] = useState([emptyJob()]);
   const [quals, setQuals] = useState([emptyRow()]);
   const [motive, setMotive] = useState("");
+  const [summary, setSummary] = useState("");
+  const [skills, setSkills] = useState("");
+  const [selfPR, setSelfPR] = useState("");
   const [wish, setWish] = useState("貴社規定に従います。");
   const [gapTexts, setGapTexts] = useState({});
   const [months, setMonths] = useState("6ヶ月");
@@ -113,6 +116,7 @@ export default function App() {
     basic, historyRows, quals, motive,
     wish, wishLines: (wish || "").split("\n").filter(Boolean),
     jobs, gaps, gapTexts, dateStr,
+    summary, skills, selfPR,
   });
 
   const doExcel = async () => {
@@ -128,7 +132,7 @@ export default function App() {
   };
 
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify({ basic, edus, jobs, quals, motive, wish, gapTexts }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ basic, edus, jobs, quals, motive, wish, gapTexts, summary, skills, selfPR }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob); a.download = "resume-data.json"; a.click();
   };
@@ -141,6 +145,7 @@ export default function App() {
         const d = JSON.parse(r.result);
         setBasic(d.basic || basic); setEdus(d.edus || edus); setJobs(d.jobs || jobs);
         setQuals(d.quals || quals); setMotive(d.motive || ""); setWish(d.wish || ""); setGapTexts(d.gapTexts || {});
+        setSummary(d.summary || ""); setSkills(d.skills || ""); setSelfPR(d.selfPR || "");
       } catch { alert("読み込めませんでした。ファイルを確認してください。"); }
     };
     r.readAsText(f);
@@ -216,6 +221,16 @@ export default function App() {
               <textarea style={{ ...S.input, minHeight: 90 }} value={motive} onChange={(e) => setMotive(e.target.value)} />
               <h2 style={{ ...S.h2, marginTop: 14 }}>本人希望記入欄</h2>
               <textarea style={{ ...S.input, minHeight: 56 }} value={wish} onChange={(e) => setWish(e.target.value)} />
+            </div>
+
+            <div style={S.card}>
+              <h2 style={S.h2}>職務経歴書用の項目</h2>
+              <label style={S.label}>職務要約（3〜5行でこれまでの経歴の概要）</label>
+              <textarea style={{ ...S.input, minHeight: 70 }} value={summary} onChange={(e) => setSummary(e.target.value)} />
+              <label style={S.label}>活かせるスキル・経験（1行に1項目）</label>
+              <textarea style={{ ...S.input, minHeight: 70 }} placeholder={"Excelでのデータ集計（VLOOKUP、ピボットテーブル）\n電話・来客応対\n正確な事務処理"} value={skills} onChange={(e) => setSkills(e.target.value)} />
+              <label style={S.label}>自己PR</label>
+              <textarea style={{ ...S.input, minHeight: 90 }} value={selfPR} onChange={(e) => setSelfPR(e.target.value)} />
             </div>
 
             <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
