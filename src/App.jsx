@@ -112,7 +112,7 @@ export default function App() {
     rows.push({ y: "", m: "", t: "職　　歴", center: true });
     jobs.filter((j) => j.company).forEach((j) => {
       const [fy, fm] = splitYM(j.from);
-      rows.push({ y: fy, m: fm, t: `${j.company} 入社${j.role ? `（${j.role}）` : ""}` });
+      rows.push({ y: fy, m: fm, t: `${j.company} 入社` });
       if (j.to) {
         const [ty, tm] = splitYM(j.to);
         rows.push({ y: ty, m: tm, t: `${j.company} 一身上の都合により退社` });
