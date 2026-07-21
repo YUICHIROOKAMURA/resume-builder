@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
-import { exportExcel, historyOverflow } from "./excelExport.js";
+import { exportRirekiWord, rirekiOverflow } from "./rirekiWordExport.js";
 import { exportWord } from "./wordExport.js";
 
 const GAP_TEMPLATES = {
@@ -20,6 +20,17 @@ const GAP_TEMPLATES = {
     非開示: "家庭の事情により離職いたしましたが、現在は状況が解消し、フルタイムでの勤務が可能です。",
   },
 };
+
+function formatBirth(raw) {
+  if (!raw) return "";
+  const s = raw.trim();
+  // すでに「年」を含む場合はそのまま(末尾に「生」がなければ補う)
+  if (/年/.test(s)) return /生\s*$/.test(s) ? s : s + "生";
+  // 8桁数字 (19831014) / 区切り付き (1983/10/14, 1983-10-14) に対応
+  const m = /^(\d{4})[\/\-年]?(\d{1,2})[\/\-月]?(\d{1,2})日?/.exec(s.replace(/\s/g, ""));
+  if (m) return `${m[1]}年${parseInt(m[2])}月${parseInt(m[3])}日生`;
+  return s;
+}
 
 const emptyJob = () => ({ id: Date.now() + Math.random(), company: "", role: "", from: "", to: "", detail: "" });
 const emptyRow = () => ({ id: Date.now() + Math.random(), y: "", m: "", text: "" });
@@ -113,16 +124,16 @@ export default function App() {
   }, [edus, jobs]);
 
   const payload = () => ({
-    basic, historyRows, quals, motive,
+    basic: { ...basic, birth: formatBirth(basic.birth) }, historyRows, quals, motive,
     wish, wishLines: (wish || "").split("\n").filter(Boolean),
     jobs, gaps, gapTexts, dateStr,
     summary, skills, selfPR,
   });
 
-  const doExcel = async () => {
-    if (historyOverflow(historyRows)) alert("学歴・職歴が多いため、フォーマットに収まらない行は省略されます。");
-    setBusy("excel");
-    try { await exportExcel(payload()); } catch (e) { alert("Excel出力に失敗しました: " + e.message); }
+  const doRireki = async () => {
+    if (rirekiOverflow(historyRows, quals)) alert("学歴・職歴または資格が多いため、フォーマットに収まらない行は省略されます。");
+    setBusy("rireki");
+    try { await exportRirekiWord(payload()); } catch (e) { alert("履歴書出力に失敗しました: " + e.message); }
     setBusy("");
   };
   const doWord = async () => {
@@ -179,7 +190,7 @@ export default function App() {
             <div style={S.card}>
               <h2 style={S.h2}>基本情報</h2>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>
-                {[["kana", "ふりがな"], ["name", "氏名"], ["birth", "生年月日（例: 1992年4月1日生）"], ["age", "満年齢"], ["gender", "性別（任意・空欄可）"], ["tel", "電話番号"], ["zip", "郵便番号（例: 160-0000）"], ["email", "E-mail"], ["addrKana", "住所ふりがな"], ["address", "住所"]].map(([k, l]) => (
+                {[["kana", "ふりがな"], ["name", "氏名"], ["birth", "生年月日（例: 1992年4月1日 / 19920401 どちらも可）"], ["age", "満年齢"], ["gender", "性別（任意・空欄可）"], ["tel", "電話番号"], ["zip", "郵便番号（例: 160-0000）"], ["email", "E-mail"], ["addrKana", "住所ふりがな"], ["address", "住所"]].map(([k, l]) => (
                   <div key={k}><label style={S.label}>{l}</label><input style={S.input} value={basic[k]} onChange={(e) => setBasic({ ...basic, [k]: e.target.value })} /></div>
                 ))}
               </div>
@@ -277,12 +288,12 @@ export default function App() {
           <div style={S.card}>
             <h2 style={S.h2}>ファイル出力</h2>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-              <button style={S.btnGreen} disabled={busy !== ""} onClick={doExcel}>{busy === "excel" ? "生成中…" : "Excel出力（.xlsx / 履歴書）"}</button>
+              <button style={S.btnBlue} disabled={busy !== ""} onClick={doRireki}>{busy === "rireki" ? "生成中…" : "履歴書を出力（.docx / 指定フォーマット）"}</button>
               <button style={S.btnBlue} disabled={busy !== ""} onClick={doWord}>{busy === "word" ? "生成中…" : "Word出力（.docx / 職務経歴書）"}</button>
             </div>
             <div style={{ fontSize: 13, color: "#5a6b7d", lineHeight: 1.8 }}>
-              Excel出力はJIS準拠レイアウトの履歴書（A4縦2ページ・写真貼付欄・印刷範囲設定済み）の.xlsxファイルです。開いてそのまま編集・印刷できます。<br />
-              Word出力は職務経歴書（離職期間の説明を含む）の.docxファイルです。
+              履歴書は事業所指定のWordフォーマット（厚労省様式ベース・写真欄付き）に差し込んだ.docxファイルです。Wordで開いてそのまま編集・印刷できます。<br />
+              職務経歴書は職務要約・スキル・自己PR・離職期間の説明を含む.docxファイルです。
             </div>
           </div>
         )}
