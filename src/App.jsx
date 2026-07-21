@@ -57,6 +57,22 @@ function detectGaps(jobs) {
       });
     }
   }
+  // 最後の職歴の退社から今日までの空白(現在も無職の場合)を検出
+  if (sorted.length > 0) {
+    const last = sorted[sorted.length - 1];
+    // 在職中(toが空)の場合は空白なしとみなす
+    if (last.t != null) {
+      const now = new Date();
+      const nowIdx = now.getFullYear() * 12 + now.getMonth();
+      if (nowIdx - last.t >= 4) {
+        gaps.push({
+          from: `${Math.floor((last.t + 1) / 12)}年${((last.t + 1) % 12) + 1}月`,
+          to: "現在",
+          months: nowIdx - last.t - 1, key: `${last.t}-now`, ongoing: true,
+        });
+      }
+    }
+  }
   return gaps;
 }
 
